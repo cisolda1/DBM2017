@@ -16,7 +16,6 @@ CREATE TABLE People(
 
 CREATE TABLE Actors(
 	actorID char(4) not null,
-	pid char(4) not null references People(pid),
 	birthdate date not null,
 	haircolor text not null,
 	eyecolor text not null,
@@ -35,7 +34,6 @@ CREATE TABLE ActorWork(
 
 CREATE TABLE Directors(
 	directorID char(4) not null,
-	pid char(4) not null references People(pid),
 	filmSchool text,
 	DGAnnDate date,
 	favLensMaker text,
@@ -67,14 +65,14 @@ INSERT INTO People(pid, fname, lname, address, spouseName)
 	VALUES(0003, 'Snake', 'Blake', '123 Hello St', 'Briane Doke'),
 	VALUES(0004, 'Slake', 'Bake', '123 Hello Ct', 'Hi Diane');
 		
-INSERT INTO Actors(actorID, pid, birthdate, haircolor, eyecolor, heightInches, weight, favColor, SAGAnnDate)
-	VALUES(0100, 0001, 4/7/1997, 'brown', 'hazel', 72, 165, 'blue', 4/8/1997),
-	VALUES(0101, 0004, 4/20/1997, 'black', 'brown', 80, 150, 'green', 4/21/1997);
+INSERT INTO Actors(actorID, birthdate, haircolor, eyecolor, heightInches, weight, favColor, SAGAnnDate)
+	VALUES(0001, 4/7/1997, 'brown', 'hazel', 72, 165, 'blue', 4/8/1997),
+	VALUES(0004, 4/20/1997, 'black', 'brown', 80, 150, 'green', 4/21/1997);
 	
-INSERT INTO Directors(directorID, pid, DGAnnDATE)
-	VALUES(1000,0002, 4/9/1997),
-	VALUES(1001,0003, 4/10/1997),
-	VALUES(1002,0004, 4/11/1997);
+INSERT INTO Directors(directorID, DGAnnDATE)
+	VALUES(0002, 4/9/1997),
+	VALUES(0003, 4/10/1997),
+	VALUES(0004, 4/11/1997);
 
 INSERT INTO Movies(mpaaNum, name)
 	VALUES(2000, 'Test1'),
