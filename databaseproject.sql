@@ -9,8 +9,6 @@
 -- Drop Statements --
 --------------------------------------------------
 
-DROP FUNCTION IF EXISTS update_town();
-DROP FUNCTION IF EXISTS update_parking_area();
 DROP TABLE IF EXISTS Transactions;
 DROP TABLE IF EXISTS Slots;
 DROP TABLE IF EXISTS ParkingArea;
@@ -124,6 +122,21 @@ END;
 $$
 LANGUAGE PLPGSQL;
 
+CREATE OR REPLACE FUNCTION get_users_transaction (char(6), REFCURSOR) returns refcursor as
+$$
+DECLARE
+userID    char(8) := $1;
+results REFCURSOR := $2;
+BEGIN
+OPEN results FOR
+SELECT tr.transID, tr.parkingID, tr.userID, tr.sloID
+FROM Transactions tr INNER JOIN Users u ON tr.userID = u.userID
+WHERE userID = u.userID;
+RETURN results;
+END;
+$$
+language plpgsql;
+
 
 CREATE TRIGGER update_slot_status_trigger
 BEFORE INSERT ON Transactions
@@ -134,17 +147,17 @@ EXECUTE PROCEDURE update_slot_status();
 --------------------------------------------------
 -- Reports/Interesting Queries --
 --------------------------------------------------
-SELECT SUM(amount) AS totAmount
+SELECT SUM(amount) AS totAmountUSD
 FROM transactions
-WHERE parkingID = 'PA001'
+WHERE parkingID = 'PA004'
 
 
 SELECT u.userID,
-       SUM(amount) AS userTotal
+       SUM(amount) AS userTotalUSD
 FROM Users u INNER JOIN Transactions t
     ON u.userID = t.userID
 GROUP BY u.userID
-ORDER BY userTotal DESC;
+ORDER BY userTotalUSD DESC;
   
   
 SELECT COUNT(ccID) AS totalCC,
@@ -447,6 +460,12 @@ INSERT INTO Users(userID, paymentID, townID, firstName, lastName, email, phoneNu
     
     
 -- Parking Area --
+INSERT INTO ParkingArea(parkingID, townID, areaID)
+    VALUES('PA4313','TN0034', 'A002');
+    
+INSERT INTO ParkingArea(parkingID, townID, areaID)
+    VALUES('PA431','TN0002', 'A002');
+    
 INSERT INTO ParkingArea(parkingID, townID, areaID)
     VALUES('PA001','TN0034', 'A001');
 
@@ -765,3 +784,40 @@ INSERT INTO Slots(slotID, parkingID, slotNum, isHandicap, floorNumber, carCharge
     
 INSERT INTO Slots(slotID, parkingID, slotNum, isHandicap, floorNumber, carCharger)
     VALUES('S139', 'PA015', 013, 'False', 1, 'False');
+    
+-- Transactions --
+INSERT INTO Transactions(transID, parkingID, slotID, userID, amount, time_paid_for)
+    VALUES('T001', 'PA004', 'S060', 'U001', 2.00, '2 hours');
+    
+INSERT INTO Transactions(transID, parkingID, slotID, userID, amount, time_paid_for)
+    VALUES('T002', 'PA015', 'S139', 'U002', 4.00, '4 hours');
+    
+INSERT INTO Transactions(transID, parkingID, slotID, userID, amount, time_paid_for)
+    VALUES('T003', 'PA014', 'S134', 'U003', 3.00, '3 hours');
+    
+INSERT INTO Transactions(transID, parkingID, slotID, userID, amount, time_paid_for)
+    VALUES('T004', 'PA013', 'S138', 'U004', 1.00, '1 hour');
+    
+INSERT INTO Transactions(transID, parkingID, slotID, userID, amount, time_paid_for)
+    VALUES('T005', 'PA008', 'S104', 'U006', 2.00, '2 hours');
+    
+INSERT INTO Transactions(transID, parkingID, slotID, userID, amount, time_paid_for)
+    VALUES('T006', 'PA005', 'S070', 'U007', 3.00, '3 hours');
+    
+INSERT INTO Transactions(transID, parkingID, slotID, userID, amount, time_paid_for)
+    VALUES('T007', 'PA005', 'S074', 'U009', 4.00, '4 hours');
+    
+--------------------------------------------------
+-- Security Roles --
+--------------------------------------------------
+
+DROP ROLE IF EXISTS ADMIN;
+DROP ROLE IF EXISTS USERS;
+
+CREATE ROLE ADMIN;
+GRANT ALL ON ALL TABLES IN SCHEMA PUBLIC TO ADMIN;
+
+CREATE ROLE USERS;
+REVOKE ALL ON ALL TABLES IN SCHEMA PUBLIC FROM USERS;
+GRANT INSERT ON Users, Payment, CreditCard, Bank TO USERS;
+GRANT UPDATE ON Users, Payment, CreditCard, Bank TO USERS;
